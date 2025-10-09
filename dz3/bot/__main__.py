@@ -16,14 +16,18 @@ def main() -> None:
             bot.database_client.persist_updates(updates)
             updates_next_offset = get_next_offset(updates)
             for update in updates:
-                bot.telegram_client.sendMessage(
-                    chat_id=update["message"]["chat"]["id"],
-                    text=update["message"]["text"],
-                )
+                try:
+                    bot.telegram_client.sendMessage(
+                        chat_id=update["message"]["chat"]["id"],
+                        text=update["message"]["text"],
+                    )
+                except:
+                    pass
                 print(".", end="", flush=True)
             time.sleep(1)
     except KeyboardInterrupt:
         print("\nBye:)")
 
 if __name__ == "__main__":
+
     main()
