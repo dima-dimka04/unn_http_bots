@@ -26,5 +26,8 @@ def make_request(method: str, **kwargs) -> dict:
 def getUpdates(**params) -> dict:
     return make_request("getUpdates", **params)
 
-def sendMessage(chat_id: int, text: str) -> dict:
-    return make_request("sendMessage", chat_id=chat_id, text=text)
+def sendMessage(chat_id: int, text: str, **params) -> dict:
+    return make_request("sendMessage", chat_id=chat_id, text=text, **params)
+
+def getMe() -> dict:
+    return make_request("getMe")
