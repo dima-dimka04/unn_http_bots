@@ -32,5 +32,11 @@ def sendMessage(chat_id: int, text: str, **params) -> dict:
 def sendPhoto(chat_id: int, photo: str, **params) -> dict:
     return make_request("sendPhoto", chat_id=chat_id, photo=photo, **params)
 
+def answerCallbackQuery(callback_query_id: str, **kwargs) -> dict:
+    return make_request("answerCallbackQuery", callback_query_id=callback_query_id, **kwargs)
+
+def deleteMessage(chat_id: int, message_id: int) -> dict:
+    return make_request("deleteMessage", chat_id=chat_id, message_id=message_id)
+
 def getMe() -> dict:
     return make_request("getMe")
