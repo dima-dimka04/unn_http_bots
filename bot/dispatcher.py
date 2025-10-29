@@ -2,6 +2,7 @@ from bot.handlers.handler import Handler, HandlerStatus
 import json
 import bot.database_client
 
+
 class Dispatcher:
     def __init__(self):
         self._handlers: list[Handler] = []

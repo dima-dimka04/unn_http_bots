@@ -7,6 +7,7 @@ from bot.handlers.pizza_size import PizzaSizeHandler
 from bot.handlers.drinks import PizzaDrinksHandler
 from bot.handlers.order_approval import OrderApprovalHandler
 
+
 def get_handlers() -> list[Handler]:
     return [
         Database(),
@@ -15,5 +16,5 @@ def get_handlers() -> list[Handler]:
         PizzaSelectionHandler(),
         PizzaSizeHandler(),
         PizzaDrinksHandler(),
-        OrderApprovalHandler()
+        OrderApprovalHandler(),
     ]

@@ -32,7 +32,7 @@ class PizzaSizeHandler(Handler):
         bot.database_client.update_user_order_json(telegram_id, order_json)
         bot.database_client.update_user_state(telegram_id, "WAIT_FOR_DRINKS")
 
-        #bot.telegram_client.answerCallbackQuery(update["callback_query"]["id"])
+        # bot.telegram_client.answerCallbackQuery(update["callback_query"]["id"])
 
         bot.telegram_client.deleteMessage(
             chat_id=update["callback_query"]["message"]["chat"]["id"],
