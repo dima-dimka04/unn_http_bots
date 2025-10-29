@@ -72,4 +72,4 @@ Is everything correct?"""
                 },
             ),
         )
-        return HandlerStatus.CONTINUE
+        return HandlerStatus.STOP
