@@ -1,4 +1,3 @@
-import time
 from bot.dispatcher import Dispatcher
 from bot.handlers import get_handlers
 from bot.long_polling import start_long_polling
@@ -10,7 +9,7 @@ def main() -> None:
     try:
         storage = StorageSqlite()
         storage.recreate_database()
-        messenger: Messenger = MessengerTelegram()
+        messenger = MessengerTelegram()
         dispatcher = Dispatcher(storage, messenger)
         dispatcher.add_handler(*get_handlers())
         start_long_polling(dispatcher, messenger)

@@ -1,5 +1,4 @@
 from bot.dispatcher import Dispatcher
-from bot.domain.storage import Storage
 from bot.domain.messenger import Messenger
 import time
 
