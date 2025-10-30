@@ -23,7 +23,7 @@ class MessengerTelegram(Messenger):
         with urllib.request.urlopen(request) as response:
             response_body = response.read().decode("utf-8")
             response_json = json.loads(response_body)
-            assert response_json["ok"] == True
+            assert response_json["ok"]
             return response_json["result"]
 
     def getUpdates(self, **params) -> dict:
