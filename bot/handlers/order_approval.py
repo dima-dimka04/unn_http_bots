@@ -1,12 +1,18 @@
 import json
-
-import bot.telegram_client
-import bot.database_client
+from bot.domain.storage import Storage
+from bot.domain.messenger import Messenger
 from bot.handlers.handler import Handler, HandlerStatus
 
 
 class OrderApprovalHandler(Handler):
-    def can_handle(self, update: dict, state: str, order_json: dict) -> bool:
+    def can_handle(
+        self,
+        update: dict,
+        state: str,
+        order_json: dict,
+        storage: Storage,
+        messenger: Messenger,
+    ) -> bool:
         if "callback_query" not in update:
             return False
 
@@ -16,18 +22,25 @@ class OrderApprovalHandler(Handler):
         callback_data = update["callback_query"]["data"]
         return callback_data in ["order_approve", "order_restart"]
 
-    def handle(self, update: dict, state: str, order_json: dict) -> HandlerStatus:
+    def handle(
+        self,
+        update: dict,
+        state: str,
+        order_json: dict,
+        storage: Storage,
+        messenger: Messenger,
+    ) -> HandlerStatus:
         telegram_id = update["callback_query"]["from"]["id"]
         callback_data = update["callback_query"]["data"]
 
-        # bot.telegram_client.answer_callback_query(update["callback_query"]["id"])
-        bot.telegram_client.deleteMessage(
+        # messenger.answer_callback_query(update["callback_query"]["id"])
+        messenger.deleteMessage(
             chat_id=update["callback_query"]["message"]["chat"]["id"],
             message_id=update["callback_query"]["message"]["message_id"],
         )
 
         if callback_data == "order_approve":
-            bot.database_client.update_user_state(telegram_id, "ORDER_FINISHED")
+            storage.update_user_state(telegram_id, "ORDER_FINISHED")
 
             pizza_name = order_json.get("pizza_name", "Unknown")
             pizza_size = order_json.get("pizza_size", "Unknown")
@@ -43,17 +56,17 @@ Thank you for your order! Your pizza will be ready soon.
 
 Send /start to place another order."""
 
-            bot.telegram_client.sendMessage(
+            messenger.sendMessage(
                 chat_id=update["callback_query"]["message"]["chat"]["id"],
                 text=order_confirmation,
                 parse_mode="Markdown",
             )
 
         elif callback_data == "order_restart":
-            bot.database_client.clear_user_state_and_order(telegram_id)
-            bot.database_client.update_user_state(telegram_id, "WAIT_FOR_PIZZA_NAME")
+            storage.clear_user_state_and_order(telegram_id)
+            storage.update_user_state(telegram_id, "WAIT_FOR_PIZZA_NAME")
 
-            bot.telegram_client.sendMessage(
+            messenger.sendMessage(
                 chat_id=update["callback_query"]["message"]["chat"]["id"],
                 text="Please choose pizza type",
                 reply_markup=json.dumps(

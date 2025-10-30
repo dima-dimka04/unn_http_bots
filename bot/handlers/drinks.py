@@ -1,11 +1,18 @@
 import json
-import bot.telegram_client
-import bot.database_client
 from bot.handlers.handler import Handler, HandlerStatus
+from bot.domain.storage import Storage
+from bot.domain.messenger import Messenger
 
 
 class PizzaDrinksHandler(Handler):
-    def can_handle(self, update: dict, state: str, order_json: dict) -> bool:
+    def can_handle(
+        self,
+        update: dict,
+        state: str,
+        order_json: dict,
+        storage: Storage,
+        messenger: Messenger,
+    ) -> bool:
         if "callback_query" not in update:
             return False
 
@@ -15,7 +22,14 @@ class PizzaDrinksHandler(Handler):
         callback_data = update["callback_query"]["data"]
         return callback_data.startswith("drink_")
 
-    def handle(self, update: dict, state: str, order_json: dict) -> HandlerStatus:
+    def handle(
+        self,
+        update: dict,
+        state: str,
+        order_json: dict,
+        storage: Storage,
+        messenger: Messenger,
+    ) -> HandlerStatus:
         telegram_id = update["callback_query"]["from"]["id"]
         callback_data = update["callback_query"]["data"]
 
@@ -33,11 +47,11 @@ class PizzaDrinksHandler(Handler):
 
         order_json["drink"] = selected_drink
 
-        bot.database_client.update_user_order_json(telegram_id, order_json)
-        bot.database_client.update_user_state(telegram_id, "WAIT_FOR_ORDER_APPROVE")
-        # bot.telegram_client.answerCallbackQuery(update["callback_query"]["id"])
+        storage.update_user_order_json(telegram_id, order_json)
+        storage.update_user_state(telegram_id, "WAIT_FOR_ORDER_APPROVE")
+        # messenger.answerCallbackQuery(update["callback_query"]["id"])
 
-        bot.telegram_client.deleteMessage(
+        messenger.deleteMessage(
             chat_id=update["callback_query"]["message"]["chat"]["id"],
             message_id=update["callback_query"]["message"]["message_id"],
         )
@@ -54,7 +68,7 @@ class PizzaDrinksHandler(Handler):
 
 Is everything correct?"""
 
-        bot.telegram_client.sendMessage(
+        messenger.sendMessage(
             chat_id=update["callback_query"]["message"]["chat"]["id"],
             text=order_summary,
             parse_mode="Markdown",

@@ -1,16 +1,18 @@
-import time
-import bot.telegram_client
-import bot.database_client
 from bot.dispatcher import Dispatcher
 from bot.handlers import get_handlers
 from bot.long_polling import start_long_polling
+from bot.infrastructure.messenger_telegram import MessengerTelegram
+from bot.infrastructure.storage_sqlite import StorageSqlite
 
 
 def main() -> None:
     try:
-        dispatcher = Dispatcher()
+        storage = StorageSqlite()
+        storage.recreate_database()
+        messenger = MessengerTelegram()
+        dispatcher = Dispatcher(storage, messenger)
         dispatcher.add_handler(*get_handlers())
-        start_long_polling(dispatcher)
+        start_long_polling(dispatcher, messenger)
     except KeyboardInterrupt:
         print("\nBye:)")
 
