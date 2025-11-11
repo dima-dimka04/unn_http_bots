@@ -7,9 +7,9 @@ from bot.infrastructure.storage_postgres import StoragePostgres
 
 def main() -> None:
     try:
-        #storage = StorageSqlite()
+        # storage = StorageSqlite()
         storage = StoragePostgres()
-        #storage.recreate_database()
+        # storage.recreate_database()
         messenger = MessengerTelegram()
         dispatcher = Dispatcher(storage, messenger)
         dispatcher.add_handler(*get_handlers())

@@ -3,7 +3,9 @@ import os
 import pg8000
 from dotenv import load_dotenv
 from bot.domain.storage import Storage
+
 load_dotenv()
+
 
 class StoragePostgres(Storage):
     def _get_connection(self):
@@ -12,7 +14,7 @@ class StoragePostgres(Storage):
         user = os.getenv("POSTGRES_USER")
         password = os.getenv("POSTGRES_PASSWORD")
         database = os.getenv("POSTGRES_DATABASE")
-        
+
         if host is None:
             raise ValueError("POSTGRES_HOST environment variable is not set")
         if port is None:
@@ -23,7 +25,7 @@ class StoragePostgres(Storage):
             raise ValueError("POSTGRES_PASSWORD environment variable is not set")
         if database is None:
             raise ValueError("POSTGRES_DATABASE environment variable is not set")
-        
+
         return pg8000.connect(
             host=host,
             port=int(port),
