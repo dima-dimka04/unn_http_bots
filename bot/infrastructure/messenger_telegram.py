@@ -13,7 +13,7 @@ class MessengerTelegram(Messenger):
 
         request = urllib.request.Request(
             method="POST",
-            url=f"{os.getenv("TELEGRAM_BASE_URI")}/{method}",
+            url=f"https://api.telegram.org/bot{os.getenv("TELEGRAM_TOKEN")}/{method}",
             data=json_data,
             headers={
                 "Content-Type": "application/json",
