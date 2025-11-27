@@ -14,7 +14,7 @@ class Database(Handler):
     ) -> bool:
         return True
 
-    def handle(
+    async def handle(
         self,
         update: dict,
         state: str,
@@ -22,5 +22,5 @@ class Database(Handler):
         storage: Storage,
         messenger: Messenger,
     ) -> HandlerStatus:
-        storage.persist_updates(update)
+        await storage.persist_updates(update)
         return HandlerStatus.CONTINUE
