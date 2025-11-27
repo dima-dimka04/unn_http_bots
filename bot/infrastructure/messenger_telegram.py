@@ -1,49 +1,83 @@
-import urllib.request
+import logging
 import os
-import json
+import time
+import aiohttp
 from dotenv import load_dotenv
 from bot.domain.messenger import Messenger
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s.%(msecs)03d] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
 
 class MessengerTelegram(Messenger):
-    def make_request(self, method: str, **kwargs) -> dict:
-        json_data = json.dumps(kwargs).encode("utf-8")
+    def __init__(self) -> None:
+        self._session: aiohttp.ClientSession | None = None
 
-        request = urllib.request.Request(
-            method="POST",
-            url=f"https://api.telegram.org/bot{os.getenv("TELEGRAM_TOKEN")}/{method}",
-            data=json_data,
-            headers={
-                "Content-Type": "application/json",
-            },
+    def _get_telegram_base_uri(self) -> str:
+        return f"https://api.telegram.org/bot{os.getenv('TELEGRAM_TOKEN')}"
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
+    async def make_request(self, method: str, **kwargs) -> dict:
+        url = f"{self._get_telegram_base_uri()}/{method}"
+        start_time = time.time()
+
+        logger.info(f"[HTTP] → POST {method}")
+
+        try:
+            session = await self._get_session()
+            async with session.post(
+                url,
+                json=kwargs,
+                headers={"Content-Type": "application/json"},
+            ) as response:
+                response_json = await response.json()
+                assert response_json["ok"] == True  # noqa: E712
+
+                duration_ms = (time.time() - start_time) * 1000
+                logger.info(f"[HTTP] ← POST {method} - {duration_ms:.2f}ms")
+
+                return response_json["result"]
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(f"[HTTP] ✗ POST {method} - {duration_ms:.2f}ms - Error: {e}")
+            raise
+
+    async def close(self) -> None:
+        if self._session and not self._session.closed:
+            await self._session.close()
+
+    async def getUpdates(self, **params) -> list:
+        return await self.make_request("getUpdates", **params)
+
+    async def sendMessage(self, chat_id: int, text: str, **params) -> dict:
+        return await self.make_request(
+            "sendMessage", chat_id=chat_id, text=text, **params
         )
 
-        with urllib.request.urlopen(request) as response:
-            response_body = response.read().decode("utf-8")
-            response_json = json.loads(response_body)
-            assert response_json["ok"]
-            return response_json["result"]
+    async def sendPhoto(self, chat_id: int, photo: str, **params) -> dict:
+        return await self.make_request(
+            "sendPhoto", chat_id=chat_id, photo=photo, **params
+        )
 
-    def getUpdates(self, **params) -> dict:
-        return self.make_request("getUpdates", **params)
-
-    def sendMessage(self, chat_id: int, text: str, **params) -> dict:
-        return self.make_request("sendMessage", chat_id=chat_id, text=text, **params)
-
-    def sendPhoto(self, chat_id: int, photo: str, **params) -> dict:
-        return self.make_request("sendPhoto", chat_id=chat_id, photo=photo, **params)
-
-    def answerCallbackQuery(self, callback_query_id: str, **kwargs) -> dict:
-        return self.make_request(
+    async def answerCallbackQuery(self, callback_query_id: str, **kwargs) -> dict:
+        return await self.make_request(
             "answerCallbackQuery", callback_query_id=callback_query_id, **kwargs
         )
 
-    def deleteMessage(self, chat_id: int, message_id: int) -> dict:
-        return self.make_request(
+    async def deleteMessage(self, chat_id: int, message_id: int) -> dict:
+        return await self.make_request(
             "deleteMessage", chat_id=chat_id, message_id=message_id
         )
 
-    def getMe(self) -> dict:
-        return self.make_request("getMe")
+    async def getMe(self) -> dict:
+        return await self.make_request("getMe")
