@@ -1,26 +1,31 @@
 import asyncio
-from bot.dispatcher import Dispatcher
-from bot.handlers import get_handlers
-import bot.long_polling
-from bot.infrastructure.messenger_telegram import MessengerTelegram
-from bot.infrastructure.storage_postgres import StoragePostgres
+import logging
+import os
+
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import Message
+import dotenv
+
+dotenv.load_dotenv()
+
+dispatcher = Dispatcher()
+
+
+@dispatcher.message(F.text)
+async def message_text_echo_handler(message: Message):
+    await message.answer(message.text)
+
+
+@dispatcher.message(F.photo)
+async def message_photo_echo_handler(message: Message):
+    await message.answer_photo(message.photo[-1].file_id)
 
 
 async def main() -> None:
-    storage = StoragePostgres()
-    messenger = MessengerTelegram()
-    try:
-        dispatcher = Dispatcher(storage, messenger)
-        dispatcher.add_handler(*get_handlers())
-        await bot.long_polling.start_long_polling(dispatcher, messenger)
-    except KeyboardInterrupt:
-        print("\nBye:)")
-    finally:
-        if hasattr(messenger, "close"):
-            await messenger.close()
-        if hasattr(storage, "close"):
-            await storage.close()
+    bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
+    await dispatcher.start_polling(bot)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
