@@ -1,14 +1,23 @@
 import asyncio
+import json
 import logging
 import os
 
 from aiogram import Bot, Dispatcher, F
-from aiogram.types import Message
+from aiogram.types import Message, Update
+from aiogram.utils.serialization import deserialize_telegram_object_to_python
 import dotenv
 
 dotenv.load_dotenv()
 
 dispatcher = Dispatcher()
+
+
+@dispatcher.update.outer_middleware()
+async def logger_middleware(handler: callable, event: Update, data: dict):
+    payload = deserialize_telegram_object_to_python(event)
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return await handler(event, data)
 
 
 @dispatcher.message(F.text)
