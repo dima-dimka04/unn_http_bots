@@ -1,4 +1,5 @@
 python-dotenv
 black
 ruff
-pytest
+asyncio
+aiogram
